@@ -1,0 +1,38 @@
+name: my_env1
+channels:
+  - conda-forge
+dependencies:
+  - python ==3.12
+  - ipython
+  - ipykernel
+  - jupyter
+  - matplotlib
+  - numpy
+  - wandb
+  - pandas
+  # - # scikit-learn
+  - pytorch
+  - pytorch-lightning
+  - polars
+  - diffusers
+  # - # datasets
+  - datasets[audio]
+  - librosa
+  - pysoundfile
+  - accelerate
+  - scipy
+  - torchaudio
+  - transformers
+  - peft
+  - rich
+
+  # - ipython=8.4.0
+  # I don't know if you need numpy, but showing how to install python packages from a conda repo:
+  # - numpy=1.23.0
+  - pip:
+    - audiomentations
+    - torch-audiomentations
+    - prefigure
+    - torchtune
+    # - cylimiter
+    - torchao
