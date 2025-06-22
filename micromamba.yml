@@ -31,8 +31,8 @@ dependencies:
   # - numpy=1.23.0
   - pip:
     - audiomentations
-    - torch-audiomentations
-    - prefigure
+    # - torch-audiomentations
+    # - prefigure
     - torchtune
     # - cylimiter
     - torchao

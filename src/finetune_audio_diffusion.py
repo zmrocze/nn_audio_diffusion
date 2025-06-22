@@ -1,7 +1,7 @@
 
 from diffusers import DiffusionPipeline
 import torch
-from prefigure.prefigure import push_wandb_config
+# from prefigure.prefigure import push_wandb_config
 import torch
 from torch import optim
 from torch.nn import functional as F
@@ -449,7 +449,7 @@ def main(config=config):
   model = DiffusionUncond(pipe, config)
 
   wandb_logger.watch(model, log="all")
-  push_wandb_config(wandb_logger, config)
+  wandb_logger.experiment.config.update(config)
 
   trainer = pl.Trainer(
       # precision=16,
