@@ -416,6 +416,7 @@ class DemoCallback(pl.Callback):
       self.n_samples = config.n_samples
   
   def on_train_start(self, trainer, pl_module):
+    print("Logging some initial samples...")
     pl_module.log_some_samples(trainer.global_step, self.n_samples)
 
   def on_train_epoch_end(self, trainer, pl_module):
