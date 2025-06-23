@@ -1,0 +1,19 @@
+ipython
+ipykernel
+jupyter
+matplotlib
+numpy
+wandb
+pandas
+# scikit-learn
+pytorch
+pytorch-lightning
+polars
+diffusers
+# datasets
+datasets[audio]
+librosa
+pysoundfile
+accelerate
+scipy
+torchaudio
