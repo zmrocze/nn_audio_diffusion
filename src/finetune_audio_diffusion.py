@@ -59,7 +59,7 @@ class TrainingConfig:
     sample_size = models_map[model_name]['sample_size']
     sample_rate = models_map[model_name]['sample_rate']
     data_loader_num_workers = 4
-    batch_size = 64
+    batch_size = 32
     # eval_batch_size = 16  # how many images to sample during evaluation
     gradient_accumulation_steps = 1
     lora_rank = 16  # the rank of the LoRA layers1
