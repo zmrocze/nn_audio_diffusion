@@ -462,8 +462,7 @@ def main(config=config):
   trainer.fit(model, 
     train_dataloaders=data_loaders['train'], 
     val_dataloaders=data_loaders['validation'], 
-    ckpt_path=config.ckpt_load_path,
-    save_last=True
+    ckpt_path=config.ckpt_load_path
   )
 
 main()
