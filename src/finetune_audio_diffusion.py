@@ -68,11 +68,11 @@ class TrainingConfig:
     lr = 4e-5
     lr_warmup_steps = 5 # epochs
     num_cycles=0.5  # cosine annealing cycles
-    num_epochs = 1000
+    num_epochs = 100
     # save_image_epochs = 10
     save_model_epochs = 30
     demo_every = 5
-    n_samples = 5
+    n_samples = 10
     # save_demo = True
     demo_save_path = './demo_songs'
     ckpt_load_path = None # 'best', 'last', <path]>
@@ -319,33 +319,27 @@ class DiffusionUncond(pl.LightningModule):
 
       audios = self.pipe(audio_length_in_s=4, batch_size=n_samples).audios
 
-      log_dict = {}
       filenames = []
       for i, audio in enumerate(audios):
         filename = f'{"./."}/demo_{i}.wav'
         torchaudio.save(filename, torch.tensor(audio), self.config.sample_rate, channels_first=True)
         filenames.append(filename)
 
-      log_dict["sampled_audio"] = {
-        f"epoch_{0}": 
-          [ 
-            {
-              "audio":
-                # wandb.Audio(au, sample_rate=sample_rate, caption=f"filename_{i}"),
-                wandb.Audio(filename, caption=f"demo_{i}"),
-              "mel":
-                wandb.Image(
-                   librosa.power_to_db(
-                    librosa.feature.melspectrogram(y=au, sr=self.config.sample_rate)[0,:,:], 
-                    ref=np.max), 
-                  caption=f"demo_left_mel_{i}"
-                )
-            } 
-            for (i, filename), au in zip(enumerate(filenames), audios)
-          ]
-      }
-
-      self.log_dict(log_dict)
+      columns = ["name", "audio", "mel"]
+      data = []
+      for (i, filename), au in zip(enumerate(filenames), audios):
+        name= f"demo_{i}"
+        audio = wandb.Audio(filename, caption=f"demo_{i}"),
+        mel = wandb.Image(
+              librosa.power_to_db(
+              librosa.feature.melspectrogram(y=au, sr=self.config.sample_rate)[0,:,:], 
+              ref=np.max), 
+            caption=f"demo_left_mel_{i}"
+          )
+        data.append([name, audio, mel])
+      
+      self.logger.log_table(key="demo_epoch_{step}", 
+        columns=columns, data=data)
 
     # def on_validation_epoch_end(self):
     #   # Log some images to wandb
