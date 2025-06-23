@@ -23,6 +23,7 @@ import random
 import math
 from torch.utils.data import Dataset
 from pytorch_lightning.callbacks import RichProgressBar
+import numpy as np
 
 
 models_map = {
@@ -72,7 +73,7 @@ class TrainingConfig:
     save_model_epochs = 30
     demo_every = 5
     n_samples = 5
-    save_demo = True
+    # save_demo = True
     demo_save_path = './demo_songs'
     ckpt_load_path = None # 'best', 'last', <path]>
     wandb_log_model = 'all'
@@ -313,26 +314,34 @@ class DiffusionUncond(pl.LightningModule):
     def sample_rate(self):
       return self.pipe.unet.sample_rate
     
-    def log_some_samples(self, step, n_samples=10, save_demo=True):
+    def log_some_samples(self, step, n_samples=10):
       "Log images to wandb and save them to disk"
-      audios = self.pipe(audio_length_in_s=4, batch_size=n_samples)
-      # spectrogram
+      
+      audios = self.pipe(audio_length_in_s=4, batch_size=n_samples).audios
+
       log_dict = {}
-      filename = f'{config.demo_save_path}/demo_{step}.wav'
-      if save_demo:
-        torchaudio.save(filename, audios, self.sample_rate)
+      filenames = []
+      for i, audio in enumerate(audios):
+        filename = f'{"./."}/demo_{i}.wav'
+        torchaudio.save(filename, torch.tensor(audio), self.config.sample_rate, channels_first=True)
+        filenames.append(filename)
 
       log_dict["sampled_audio"] = {
-        f"epoch_{step}": 
+        f"epoch_{0}": 
           [ 
-            { 
+            {
               "audio":
-                wandb.Audio(au, sample_rate=self.sample_rate, caption=f"filename_{i}"),
+                # wandb.Audio(au, sample_rate=sample_rate, caption=f"filename_{i}"),
+                wandb.Audio(filename, caption=f"demo_{i}"),
               "mel":
-                wandb.Image(librosa.feature.melspectrogram(au), caption=f"filename_{i}")
-            # wandb.Audio(audios, sample_rate=self.sample_rate, caption=f"filename")
+                wandb.Image(
+                   librosa.power_to_db(
+                    librosa.feature.melspectrogram(y=au, sr=self.config.sample_rate)[0,:,:], 
+                    ref=np.max), 
+                  caption=f"demo_left_mel_{i}"
+                )
             } 
-            for i, au in enumerate(audios)
+            for (i, filename), au in zip(enumerate(filenames), audios)
           ]
       }
 
@@ -411,14 +420,13 @@ class DemoCallback(pl.Callback):
       super().__init__()
       self.demo_every = config.demo_every
       self.n_samples = config.n_samples
-      self.save_demo = config.save_demo
   
   def on_train_start(self, trainer, pl_module):
-    pl_module.log_some_samples(trainer.global_step, self.n_samples, save_demo=True)
+    pl_module.log_some_samples(trainer.global_step, self.n_samples)
 
   def on_train_epoch_end(self, trainer, pl_module):
     if (trainer.current_epoch + 1) % self.demo_every == 0:
-      pl_module.log_some_samples(trainer.global_step, self.n_samples, save_demo=True)
+      pl_module.log_some_samples(trainer.global_step, self.n_samples)
 
 
 def main(config=config):
@@ -454,6 +462,11 @@ def main(config=config):
       # log_every_n_steps=1,
       max_epochs=config.num_epochs,
     )
+
+  print(f"models params: {count_n_params(model)}")
+  print(f"model: {sum(1 for p in model.parameters() if p.requires_grad)}")
+  print(f"model p: {model.named_parameters()}")
+  
 
   trainer.fit(model, train_dataloaders=data_loaders['train'], val_dataloaders=data_loaders['validation'], ckpt_path=config.ckpt_load_path)
 
