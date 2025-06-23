@@ -437,7 +437,8 @@ def main(config=config):
     auto_insert_metric_name=True,
     mode='min',
     monitor='val/loss',
-    save_top_k=2, dirpath=config.save_path
+    save_top_k=2, dirpath=config.save_path,
+    save_last=True,
   )
   demo_callback = DemoCallback(config)
 
