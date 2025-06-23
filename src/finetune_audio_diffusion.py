@@ -56,7 +56,7 @@ models_map = {
 @dataclass
 class TrainingConfig:
     model_name = "unlocked-250k"
-    data_path = "./filter_fma_rock"
+    data_path = "./rock_dataset_resampled"
     sample_size = models_map[model_name]['sample_size']
     sample_rate = models_map[model_name]['sample_rate']
     data_loader_num_workers = 4
@@ -95,10 +95,15 @@ def optional(x, bool):
     return []
 
 # samples_per_s = 44100
-def audio_augmentations(sample_size, sample_rate, use_train_augs = False):
+def audio_augmentations(sample_size, use_train_augs = False):
   output_type = 'tensor'
   augmentation = aug.Compose(
     transforms=
+      optional( # can change length, therefore first
+        aug.RepeatPart(mode="insert", p=0.8)
+        , use_train_augs
+      )
+      +
       [aug.AdjustDuration(duration_samples=sample_size, p=1.0)]
       +
       optional(
@@ -161,8 +166,7 @@ def audio_augmentations(sample_size, sample_rate, use_train_augs = False):
             min_distortion=0.01,
             max_distortion=0.15,
             p=0.8
-          ),
-          aug.RepeatPart(mode="insert", p=0.8),
+          )
         ],
         num_transforms=(0,None),
         ),
@@ -172,39 +176,22 @@ def audio_augmentations(sample_size, sample_rate, use_train_augs = False):
         aug.Gain(
           min_gain_db=-15.0,
           max_gain_db=5.0,
-          # p=0.5,
           p=0.5,
         )
         , use_train_augs)
       +
-      # optional(
-      #   taug.ShuffleChannels(p=0.5, 
-      #     # output_type=output_type
-      #     ),
-      #   use_train_augs)
-      # +
-      
       # taug.OneOf(transforms=[
       #   taug.PeakNormalization(apply_to="only_too_loud_sounds", p=1.0, output_type=output_type),
         # [taug.PeakNormalization(apply_to="all", p=1.0
         #                         # , output_type=output_type
         #                         )]
         [aug.Normalize(apply_to="only_too_loud_sounds", p=1.0)]
-      # ], output_type=output_type),
       +
       optional(
         aug.PolarityInversion(p=0.5),
       use_train_augs)
   )
 
-  # def transforms(examples):
-  #   # print(len(examples['audio']), "audio samples")
-  #   x = [augmentation(aud['array'], sample_rate=aud['sampling_rate']) for aud in examples['audio']]
-  #   examples["audio"] = x
-  #   print("Transformed audio samples:", [aud.shape for aud in examples['audio']])
-  #   return examples
-  
-  # return transforms, augmentation
   return augmentation
 
 class MusicDataset(Dataset):
@@ -218,18 +205,16 @@ class MusicDataset(Dataset):
   def __getitem__(self, idx):
     item = self.dataset[idx]
     audio = item['audio']['array']
-    if self.transform:
-      audio = self.transform(audio, sample_rate=item['audio']['sampling_rate'])
-    audio_tensor = torch.tensor(audio, dtype=torch.float32)
+    audio_tensor = self.transform(audio, sample_rate=item['audio']['sampling_rate'])
+    # audio_tensorr = torch.tensor(audio_tensor, dtype=torch.float32)
     return audio_tensor
 
 def make_dataloaders(data, config=config):
   sample_size=config.sample_size
-  sample_rate=config.sample_rate
   num_workers=config.data_loader_num_workers
   batch_size=config.batch_size
-  test_transformation = audio_augmentations(sample_size, sample_rate, use_train_augs = False)
-  train_dataset = MusicDataset(data['train'], transform=audio_augmentations(sample_size, sample_rate, use_train_augs = True))
+  test_transformation = audio_augmentations(sample_size, use_train_augs = False)
+  train_dataset = MusicDataset(data['train'], transform=audio_augmentations(sample_size, use_train_augs = True))
   val_dataset = MusicDataset(data['validation'], transform=test_transformation)
   test_dataset = MusicDataset(data['test'], transform=test_transformation)
 
