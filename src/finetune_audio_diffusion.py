@@ -59,7 +59,7 @@ class TrainingConfig:
     sample_size = models_map[model_name]['sample_size']
     sample_rate = models_map[model_name]['sample_rate']
     data_loader_num_workers = 4
-    batch_size = 128
+    batch_size = 64
     # eval_batch_size = 16  # how many images to sample during evaluation
     gradient_accumulation_steps = 1
     lora_rank = 16  # the rank of the LoRA layers1
@@ -344,25 +344,19 @@ class DiffusionUncond(pl.LightningModule):
 
     def forward_dance_diffusion(self, batch):
         reals = batch.unsqueeze(1)
-        reals = torch.concat([reals, reals.detach()], dim=1)
-        # .view(batch.shape[0], 2, batch.shape[1])  # (batch_size, 2, sample_size)
-        print(reals.shape)
+        reals = torch.concat([reals, reals.detach()], dim=1) # make stereo
 
         t = self.rng.draw(reals.shape[0])[:, 0].to(self.device)
         t = get_crash_schedule(t)
-        print(t)
         # Calculate the noise schedule parameters for those timesteps
         alphas, sigmas = get_alphas_sigmas(t)
         # Combine the ground truth images and the noise
         alphas = alphas[:, None, None]
         sigmas = sigmas[:, None, None]
-        print(alphas.shape, sigmas.shape)
         noise = torch.randn_like(reals)
         noised_reals = reals * alphas + noise * sigmas
         targets = noise * alphas - reals * sigmas
-        print(noised_reals.shape)
         v = self.model(noised_reals, t)
-        print(v)
         loss = F.mse_loss(v, targets)
         return loss
 
