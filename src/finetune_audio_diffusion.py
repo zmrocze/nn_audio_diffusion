@@ -329,17 +329,16 @@ class DiffusionUncond(pl.LightningModule):
       data = []
       for (i, filename), au in zip(enumerate(filenames), audios):
         name= f"demo_{i}"
-        audio = wandb.Audio(filename, caption=f"demo_{i}"),
+        audio = wandb.Audio(filename, caption=f"demo_{i}")
         mel = wandb.Image(
               librosa.power_to_db(
               librosa.feature.melspectrogram(y=au, sr=self.config.sample_rate)[0,:,:], 
-              ref=np.max), 
+              ref=np.max),
             caption=f"demo_left_mel_{i}"
           )
         data.append([name, audio, mel])
       
-      self.logger.log_table(key="demo_epoch_{step}", 
-        columns=columns, data=data)
+      self.logger.log_table(key=f"demo_epoch_{step}", columns=columns, data=data)
 
     # def on_validation_epoch_end(self):
     #   # Log some images to wandb
@@ -460,6 +459,11 @@ def main(config=config):
 
   print(f"Model.unet trainable params: {count_n_params(model.model)}")
   
-  trainer.fit(model, train_dataloaders=data_loaders['train'], val_dataloaders=data_loaders['validation'], ckpt_path=config.ckpt_load_path)
+  trainer.fit(model, 
+    train_dataloaders=data_loaders['train'], 
+    val_dataloaders=data_loaders['validation'], 
+    ckpt_path=config.ckpt_load_path,
+    save_last=True
+  )
 
 main()
