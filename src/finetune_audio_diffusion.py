@@ -132,8 +132,8 @@ def audio_augmentations(sample_size, sample_rate, use_train_augs = False):
                   p=1.0,
                   # output_type=output_type
               ),
-              aug.ClippingDistortion(min_percentile_threshold=0.01,
-                  max_percentile_threshold=0.99,
+              aug.ClippingDistortion(min_percentile_threshold=0,
+                  max_percentile_threshold=0.3,
                   p=0.5),
               # aug.Limiter(
               #   min_threshold_db=-16.0,
