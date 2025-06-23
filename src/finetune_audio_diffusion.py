@@ -308,15 +308,15 @@ class DiffusionUncond(pl.LightningModule):
     @property
     def model(self):
       return self.pipe.unet    
-    @property
-    def scheduler(self):
-      return self.scheduler # not self.pipe.scheduler
+    # @property
+    # def scheduler(self):
+    #   return self.scheduler # not self.pipe.scheduler
     def sample_rate(self):
       return self.pipe.unet.sample_rate
     
     def log_some_samples(self, step, n_samples=10):
       "Log images to wandb and save them to disk"
-      
+
       audios = self.pipe(audio_length_in_s=4, batch_size=n_samples).audios
 
       log_dict = {}
@@ -345,7 +345,7 @@ class DiffusionUncond(pl.LightningModule):
           ]
       }
 
-      self.log_dict(log_dict, step=step)
+      self.log_dict(log_dict)
 
     # def on_validation_epoch_end(self):
     #   # Log some images to wandb
@@ -463,11 +463,8 @@ def main(config=config):
       max_epochs=config.num_epochs,
     )
 
-  print(f"models params: {count_n_params(model)}")
-  print(f"model: {sum(1 for p in model.parameters() if p.requires_grad)}")
-  print(f"model p: {model.named_parameters()}")
+  print(f"Model.unet trainable params: {count_n_params(model.model)}")
   
-
   trainer.fit(model, train_dataloaders=data_loaders['train'], val_dataloaders=data_loaders['validation'], ckpt_path=config.ckpt_load_path)
 
 main()
