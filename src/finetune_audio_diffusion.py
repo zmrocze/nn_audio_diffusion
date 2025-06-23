@@ -396,7 +396,7 @@ class DiffusionUncond(pl.LightningModule):
         loss = self.forward_dance_diffusion(batch)
         self.log_dict({
           'train/loss': loss.detach()
-          }, prog_bar=True
+          }, prog_bar=True, on_step=True, on_epoch=True, batch_size=self.config.batch_size
         )
 
         return loss
