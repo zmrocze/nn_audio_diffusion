@@ -356,7 +356,7 @@ class DiffusionUncond(pl.LightningModule):
         noise = torch.randn_like(reals)
         noised_reals = reals * alphas + noise * sigmas
         targets = noise * alphas - reals * sigmas
-        v = self.model(noised_reals, t)
+        v = self.model(noised_reals, t).sample
         loss = F.mse_loss(v, targets)
         return loss
 
