@@ -60,9 +60,9 @@ class TrainingConfig:
     sample_size = models_map[model_name]['sample_size']
     sample_rate = models_map[model_name]['sample_rate']
     data_loader_num_workers = 4
-    batch_size = 32
+    batch_size = 8
     # eval_batch_size = 16  # how many images to sample during evaluation
-    gradient_accumulation_steps = 1
+    gradient_accumulation_steps = 4
     lora_rank = 16  # the rank of the LoRA layers1
     lora_alpha = 16 # scaling factor, which seems hardly necessary
     lr = 4e-5
@@ -72,7 +72,7 @@ class TrainingConfig:
     # save_image_epochs = 10
     save_model_epochs = 30
     demo_every = 5
-    n_samples = 10
+    n_samples = 5
     # save_demo = True
     demo_save_path = './demo_songs'
     ckpt_load_path = None # 'best', 'last', <path]>
