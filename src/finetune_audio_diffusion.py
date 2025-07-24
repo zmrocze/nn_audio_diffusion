@@ -80,7 +80,8 @@ class TrainingConfig:
     check_val_every_n_epoch = 5
     # mixed_precision = "fp16"  # `no` for float32, `fp16` for automatic mixed precision
     output_dir = f"ddim-lora-{model_name}"  # the model name locally and on the HF Hub
-    name = f"ddim-lora-{model_name}-{random.randint(0, 1000)}"  # the name of the wandb run
+    randint = random.randint(0, 1000)
+    name = f"ddim-lora-{model_name}-{randint}"  # the name of the wandb run
     project_name = "nn-audio-diffusion"
     save_path = f'{name}-ckpt'
     # overwrite_output_dir = True  # overwrite the old model when re-running the notebook
@@ -451,4 +452,5 @@ def main(config=config):
     ckpt_path=config.ckpt_load_path
   )
 
-main()
+if __name__ == "__main__":
+  main()
