@@ -416,7 +416,7 @@ def main(config=config):
   data_loaders = make_dataloaders(data, config)
   pipe = DiffusionPipeline.from_pretrained(f"harmonai/{config.model_name}")
   pipe.to(device)
-  wandb_logger = pl.loggers.WandbLogger(project=config.project_name, name=config.name, log_model=config.wandb_log_model)
+  wandb_logger = pl.loggers.WandbLogger(project=config.project_name, name=config.name, log_model=config.wandb_log_model, config=config)
   save_on_exc = pl.callbacks.OnExceptionCheckpoint(f"{config.save_path}/exc_save",)
   ckpt_callback = pl.callbacks.ModelCheckpoint(
     every_n_epochs=1,
@@ -433,7 +433,6 @@ def main(config=config):
   model = DiffusionUncond(pipe, config)
 
   wandb_logger.watch(model, log="all")
-  wandb_logger.experiment.config.update(config)
 
   trainer = pl.Trainer(
       # precision=16,
