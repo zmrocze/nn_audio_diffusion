@@ -282,7 +282,7 @@ class DiffusionUncond(pl.LightningModule):
     def configure_optimizers(self):
       optimizer = optim.AdamW(self.model.parameters(), lr=config.lr)
         #  torchtune.modules.get_cosine_schedule_with_warmup(optimizer: Optimizer, num_warmup_steps: int, num_training_steps: int, num_cycles: float = 0.5, last_epoch: int = - 1) → LambdaLR[source]
-      lr_schedule = torchtune.training.get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=config.lr_warmup_steps, num_training_steps=config.num_epochs, num_cycles=0.5, last_epoch=-1)
+      lr_schedule = torchtune.training.get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=config.lr_warmup_steps, num_training_steps=config.num_epochs, num_cycles=config.num_cycles, last_epoch=-1)
       return {
         "optimizer": optimizer, 
         "lr_scheduler": {
