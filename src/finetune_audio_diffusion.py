@@ -100,11 +100,12 @@ def audio_augmentations(sample_size, use_train_augs = False):
   output_type = 'tensor'
   augmentation = aug.Compose(
     transforms=
-      optional( # can change length, therefore first
-        aug.RepeatPart(mode="insert", p=0.8)
-        , use_train_augs
-      )
-      +
+      # Removed RepeatPart due to broadcasting errors in fade operations
+      # optional( # can change length, therefore first
+      #   aug.RepeatPart(mode="insert", p=0.8)
+      #   , use_train_augs
+      # )
+      # +
       [aug.AdjustDuration(duration_samples=sample_size, p=1.0)]
       +
       optional(
