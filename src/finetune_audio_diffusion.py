@@ -22,7 +22,7 @@ import random
 # import diffusers
 import math
 from torch.utils.data import Dataset
-from pytorch_lightning.callbacks import RichProgressBar
+from pytorch_lightning.callbacks import RichProgressBar, ModelSummary
 import numpy as np
 
 
@@ -251,6 +251,7 @@ def apply_lora(model, config=config):
 
   print(f"Before LoRA: {num_learnable_params} learnable params across {num_learnable_modules} modules.")
   print(f"After LoRA: {count_n_params(model)} learnable params across {sum(1 for p in model.parameters() if p.requires_grad)} modules.")
+  print(f"After LoRA learnable modules: {[n for n, p in model.named_parameters() if p.requires_grad]} .")
 
   return _model
 
@@ -432,12 +433,16 @@ def main(config=config):
   apply_lora(pipe.unet, config)
   model = DiffusionUncond(pipe, config)
 
+  print("and now for model summary:")
+  print(f"After LoRA: {count_n_params(model)} learnable params across {sum(1 for p in model.parameters() if p.requires_grad)} modules.")
+  print(f"After LoRA learnable modules: {[n for n, p in model.named_parameters() if p.requires_grad]} .")
+
   wandb_logger.watch(model, log="all")
 
   trainer = pl.Trainer(
       # precision=16,
       accumulate_grad_batches=config.gradient_accumulation_steps,
-      callbacks=[ckpt_callback, demo_callback, RichProgressBar(), save_on_exc],
+      callbacks=[ckpt_callback, demo_callback, RichProgressBar(), save_on_exc, ModelSummary(max_depth=-1)],
       logger=wandb_logger,
       check_val_every_n_epoch=config.check_val_every_n_epoch,
       # log_every_n_steps=1,
